@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import math
-
+import matplotlib.pyplot as plt
 def sigmoid(x):
         return 1/(1 + math.exp(-x))
 
@@ -11,7 +11,7 @@ def initialize_parameters_and_layers_NN(x_train,y_train):
                   "weight2": np.random.rand(x_train.shape[0],3)* 0.1,
                   "bias2": np.zeros((y_train.shape[0],1))}
     return parameters
-def forward_propogation_NN(x_train, parameters):
+def forward_propagation_NN(x_train, parameters):
     Z1 = np.dot(parameters["weight1"],x_train) + parameters["bias1"]
     A1 = np.tanh(Z1)
     Z2 = np.dot(parameters["weight2"],A1) + parameters["bias2"]
@@ -45,3 +45,55 @@ def update_parameters_NN(parameters, grads, learning_rate = 0.01):
                   "bias2": parameters["bias2"]-learning_rate*grads["dbias2"]}
     
     return parameters
+def predict_NN(parameters,x_test):
+    # x_test is a input for forward propagation
+    A2, cache = forward_propagation_NN(x_test,parameters)
+    Y_prediction = np.zeros((1,x_test.shape[1]))
+    # if z is bigger than 0.5, our prediction is sign one (y_head=1),
+    # if z is smaller than 0.5, our prediction is sign zero (y_head=0),
+    for i in range(A2.shape[1]):
+        if A2[0,i]<= 0.5:
+            Y_prediction[0,i] = 0
+        else:
+            Y_prediction[0,i] = 1
+
+    return Y_prediction
+def two_layer_neural_network(x_train, y_train,x_test,y_test, num_iterations):
+    cost_list = []
+    index_list = []
+    #initialize parameters and layer sizes
+    parameters = initialize_parameters_and_layers_NN(x_train, y_train)
+
+    for i in range(0, num_iterations):
+         # forward propagation
+        A2, cache = forward_propagation_NN(x_train,parameters)
+        # compute cost
+        cost = compute_cost_NN(A2, y_train, parameters)
+         # backward propagation
+        grads = backward_propagation_NN(parameters, cache, x_train, y_train)
+         # update parameters
+        parameters = update_parameters_NN(parameters, grads)
+        if i % 100 == 0:
+            cost_list.append(cost)
+            index_list.append(i)
+            print ("Cost after iteration %i: %f" %(i, cost))
+    plt.plot(index_list,cost_list)
+    plt.xticks(index_list,rotation='vertical')
+    plt.xlabel("Number of Iterarion")
+    plt.ylabel("Cost")
+    plt.show()
+    
+    # predict
+    y_prediction_test = predict_NN(parameters,x_test)
+    y_prediction_train = predict_NN(parameters,x_train)
+
+    # Print train/test Errors
+    print("train accuracy: {} %".format(100 - np.mean(np.abs(y_prediction_train - y_train)) * 100))
+    print("test accuracy: {} %".format(100 - np.mean(np.abs(y_prediction_test - y_test)) * 100))
+    return parameters
+
+parameters = two_layer_neural_network(x_train, y_train,x_test,y_test, num_iterations=2500)
+
+
+
+
