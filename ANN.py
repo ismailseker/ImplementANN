@@ -21,3 +21,7 @@ def forward_propogation_NN(x_train, parameters):
              "Z2" : Z2,
              "A2" : A2}
     return A2,cache
+def compute_cost_NN(A2,Y,parameters):
+    logprobs = np.multiply(np.log(A2),Y)
+    cost = -np.sum(logprobs)/Y.shape[1]
+    return cost
